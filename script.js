@@ -1,5 +1,6 @@
 const prompt = require('prompt');
 const model = require('./model.js')
+const fs = require('fs')
 const book1 = new model.Book('Clue of the wooden footprint', 'Hadyn Kisembo', 'mystery', 10, 13, 420, 1984, 'Adelphi Edizioni', 0);
 const book2 = new model.Book('2132: decimation', ' Bình Ren', 'sci-fi', 14, 6, 234, 1967, 'Rizzoli', 5);
 const book3 = new model.Book('Long past dawn', 'Amag Omega', 'romance', 10, 5, 199, 1935, 'Rusconi libri editori', 7);
@@ -20,10 +21,9 @@ const bookArray = [book1, book2, book3, book4, book5, book6, book7, book8, book9
 const magazineArray = [magazine1,magazine2,magazine3,magazine4,magazine5]
 
 
-const publicationArray = bookArray;
-
+const publicationArray = readData();
+console.log(publicationArray)
 console.log('benvenuto in book manager!')
-
 startMenu();
 
 
@@ -186,21 +186,16 @@ function insertBook() { //title,author,type,price,copies,pages,publication_year,
 }
 
 function insertBookManger(err, result){
-
   const book = new model.Book(result.title,result.author,result.type,parseInt(result.price),parseInt(result.copies),parseInt(result.pages),parseFloat(result.publication_year),result.publisher,parseFloat(result.discount));
-
   publicationArray.push(book);
-
   console.log(publicationArray);
-
+  saveData(bookArray)
   startMenu();
-
 }
 
 
 function insertMagazine() {
 
-  // prompt.start();
 
   const schema = {
     properties: {
@@ -221,13 +216,45 @@ function insertMagazine() {
 }
 
 function insertMagazineManger(err, result) {
-
+    saveData(magazineArray)
   const magazine = new model.Magazine(result.title, result.publisher, result.release);
-
   publicationArray.push(magazine);
-
   console.log(publicationArray);
-
   startMenu();
+}
 
+function saveData(array){
+    const JSONArray = JSON.stringify(array)
+    try{
+        fs.writeFileSync('./dataFile.json', JSONArray)
+    } catch (error) {
+        console.log('Impossibile salvare file', error.message)
+    }
+}
+
+function readData(){
+    let JSONArray
+    try{
+        JSONArray = fs.readFileSync('./dataFile.json', 'utf8')
+    } catch (error) {
+        console.log('impossibile leggere il file', error.message)
+        JSONArray = []
+    }
+    const array = JSON.parse(JSONArray);
+    // console.log(array)
+    const pubArray = []
+    for (const object of array) {
+        pubArray.push(publicationFactory(object))
+    }
+    return pubArray
+}
+
+function publicationFactory(obj){
+    if(obj.author){
+        //creo libro
+        return new model.Book(obj.title,obj.author,obj.type,obj.price,obj.copies,obj.pages,obj.publication_year,obj.publisher,obj.discount)
+    }
+    else {
+        //creo magazine
+    }
 }
